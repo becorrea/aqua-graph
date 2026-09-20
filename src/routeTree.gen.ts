@@ -10,11 +10,55 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActiveSensingRouteImport } from './routes/active-sensing'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as ConsumoRouteImport } from './routes/consumo'
+import { Route as DecisoesRouteImport } from './routes/decisoes'
+import { Route as EnchentesRouteImport } from './routes/enchentes'
+import { Route as InfraestruturaRouteImport } from './routes/infraestrutura'
+import { Route as ManutencaoRouteImport } from './routes/manutencao'
 import { Route as PerdasRouteImport } from './routes/perdas'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as SecaRouteImport } from './routes/seca'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActiveSensingRoute = ActiveSensingRouteImport.update({
+  id: '/active-sensing',
+  path: '/active-sensing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsumoRoute = ConsumoRouteImport.update({
+  id: '/consumo',
+  path: '/consumo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecisoesRoute = DecisoesRouteImport.update({
+  id: '/decisoes',
+  path: '/decisoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnchentesRoute = EnchentesRouteImport.update({
+  id: '/enchentes',
+  path: '/enchentes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfraestruturaRoute = InfraestruturaRouteImport.update({
+  id: '/infraestrutura',
+  path: '/infraestrutura',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManutencaoRoute = ManutencaoRouteImport.update({
+  id: '/manutencao',
+  path: '/manutencao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerdasRoute = PerdasRouteImport.update({
@@ -22,31 +66,111 @@ const PerdasRoute = PerdasRouteImport.update({
   path: '/perdas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecaRoute = SecaRouteImport.update({
+  id: '/seca',
+  path: '/seca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/active-sensing': typeof ActiveSensingRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/consumo': typeof ConsumoRoute
+  '/decisoes': typeof DecisoesRoute
+  '/enchentes': typeof EnchentesRoute
+  '/infraestrutura': typeof InfraestruturaRoute
+  '/manutencao': typeof ManutencaoRoute
   '/perdas': typeof PerdasRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/seca': typeof SecaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/active-sensing': typeof ActiveSensingRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/consumo': typeof ConsumoRoute
+  '/decisoes': typeof DecisoesRoute
+  '/enchentes': typeof EnchentesRoute
+  '/infraestrutura': typeof InfraestruturaRoute
+  '/manutencao': typeof ManutencaoRoute
   '/perdas': typeof PerdasRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/seca': typeof SecaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/active-sensing': typeof ActiveSensingRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/consumo': typeof ConsumoRoute
+  '/decisoes': typeof DecisoesRoute
+  '/enchentes': typeof EnchentesRoute
+  '/infraestrutura': typeof InfraestruturaRoute
+  '/manutencao': typeof ManutencaoRoute
   '/perdas': typeof PerdasRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/seca': typeof SecaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/perdas'
+  fullPaths:
+    | '/'
+    | '/active-sensing'
+    | '/configuracoes'
+    | '/consumo'
+    | '/decisoes'
+    | '/enchentes'
+    | '/infraestrutura'
+    | '/manutencao'
+    | '/perdas'
+    | '/relatorios'
+    | '/seca'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/perdas'
-  id: '__root__' | '/' | '/perdas'
+  to:
+    | '/'
+    | '/active-sensing'
+    | '/configuracoes'
+    | '/consumo'
+    | '/decisoes'
+    | '/enchentes'
+    | '/infraestrutura'
+    | '/manutencao'
+    | '/perdas'
+    | '/relatorios'
+    | '/seca'
+  id:
+    | '__root__'
+    | '/'
+    | '/active-sensing'
+    | '/configuracoes'
+    | '/consumo'
+    | '/decisoes'
+    | '/enchentes'
+    | '/infraestrutura'
+    | '/manutencao'
+    | '/perdas'
+    | '/relatorios'
+    | '/seca'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActiveSensingRoute: typeof ActiveSensingRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ConsumoRoute: typeof ConsumoRoute
+  DecisoesRoute: typeof DecisoesRoute
+  EnchentesRoute: typeof EnchentesRoute
+  InfraestruturaRoute: typeof InfraestruturaRoute
+  ManutencaoRoute: typeof ManutencaoRoute
   PerdasRoute: typeof PerdasRoute
+  RelatoriosRoute: typeof RelatoriosRoute
+  SecaRoute: typeof SecaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +182,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/active-sensing': {
+      id: '/active-sensing'
+      path: '/active-sensing'
+      fullPath: '/active-sensing'
+      preLoaderRoute: typeof ActiveSensingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consumo': {
+      id: '/consumo'
+      path: '/consumo'
+      fullPath: '/consumo'
+      preLoaderRoute: typeof ConsumoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decisoes': {
+      id: '/decisoes'
+      path: '/decisoes'
+      fullPath: '/decisoes'
+      preLoaderRoute: typeof DecisoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/enchentes': {
+      id: '/enchentes'
+      path: '/enchentes'
+      fullPath: '/enchentes'
+      preLoaderRoute: typeof EnchentesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/infraestrutura': {
+      id: '/infraestrutura'
+      path: '/infraestrutura'
+      fullPath: '/infraestrutura'
+      preLoaderRoute: typeof InfraestruturaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manutencao': {
+      id: '/manutencao'
+      path: '/manutencao'
+      fullPath: '/manutencao'
+      preLoaderRoute: typeof ManutencaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/perdas': {
       id: '/perdas'
       path: '/perdas'
@@ -65,12 +238,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerdasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seca': {
+      id: '/seca'
+      path: '/seca'
+      fullPath: '/seca'
+      preLoaderRoute: typeof SecaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActiveSensingRoute: ActiveSensingRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
+  ConsumoRoute: ConsumoRoute,
+  DecisoesRoute: DecisoesRoute,
+  EnchentesRoute: EnchentesRoute,
+  InfraestruturaRoute: InfraestruturaRoute,
+  ManutencaoRoute: ManutencaoRoute,
   PerdasRoute: PerdasRoute,
+  RelatoriosRoute: RelatoriosRoute,
+  SecaRoute: SecaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

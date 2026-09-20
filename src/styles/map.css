@@ -1,0 +1,898 @@
+/*
+ * Cartografia operacional.
+ *
+ * Toda a infraestrutura desenhada usa `non-scaling-stroke`, então as espessuras
+ * abaixo são em pixels finais e permanecem constantes durante o zoom.
+ */
+
+.ops-map {
+  position: relative;
+  min-height: 420px;
+  flex: 1;
+  background:
+    radial-gradient(120% 90% at 30% 10%, oklch(0.2712 0.0471 243.79 / 0.5), transparent 70%),
+    linear-gradient(170deg, oklch(0.2279 0.04 246.17), oklch(0.1762 0.033 256.39));
+  overflow: hidden;
+  user-select: none;
+}
+
+.ops-map > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+
+.ops-map > svg.is-pannable {
+  cursor: grab;
+}
+
+.ops-map > svg.is-pannable:active {
+  cursor: grabbing;
+}
+
+.ops-map-compact {
+  min-height: 250px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Base urbana                                                           */
+/* --------------------------------------------------------------------- */
+
+.map-urban-area {
+  fill: oklch(0.2279 0.04 246.17 / 0.85);
+  stroke: none;
+}
+
+.map-blocks {
+  fill: oklch(0.3204 0.0539 241.99 / 0.4);
+  stroke: none;
+}
+
+.map-street {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+}
+
+.map-outskirts {
+  opacity: 0.32;
+}
+
+.map-street-local {
+  stroke: oklch(0.5544 0.0407 257.42 / 0.34);
+  stroke-width: 0.6;
+}
+
+.map-street-secondary {
+  stroke: oklch(0.7107 0.0351 256.79 / 0.26);
+  stroke-width: 0.9;
+}
+
+.map-street-arterial {
+  stroke: oklch(0.7107 0.0351 256.79 / 0.4);
+  stroke-width: 1.4;
+}
+
+.map-street-ring {
+  stroke: oklch(0.7107 0.0351 256.79 / 0.28);
+  stroke-width: 1.8;
+}
+
+.map-street-express {
+  stroke: oklch(0.7107 0.0351 256.79 / 0.34);
+  stroke-width: 2.1;
+}
+
+.map-contours path {
+  fill: none;
+  stroke: oklch(0.7038 0.123 182.5 / 0.24);
+  stroke-width: 0.9;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+}
+
+/* --------------------------------------------------------------------- */
+/* Hidrografia                                                           */
+/* --------------------------------------------------------------------- */
+
+/* A água é um elemento de base, não de análise: fica em azul dessaturado para
+   que o ciano continue significando "rede/infraestrutura". */
+.map-water-body {
+  fill: oklch(0.5461 0.1054 235.28 / 0.5);
+  stroke: oklch(0.7535 0.139 232.66 / 0.34);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-river-bed {
+  fill: none;
+  stroke: oklch(0.5461 0.1054 235.28 / 0.34);
+  stroke-width: 15;
+  stroke-linecap: round;
+}
+
+.map-tributary-bed {
+  stroke-width: 9;
+}
+
+.map-river {
+  fill: none;
+  stroke: oklch(0.6157 0.1149 233.6 / 0.62);
+  stroke-width: 4.6;
+  stroke-linecap: round;
+}
+
+.map-tributary {
+  stroke-width: 2.6;
+  stroke-opacity: 0.72;
+}
+
+.map-river-flood {
+  fill: none;
+  stroke: oklch(0.7535 0.139 232.66 / 0.2);
+  stroke-width: 32;
+  stroke-linecap: round;
+}
+
+.map-canal {
+  fill: none;
+  stroke: oklch(0.5807 0.0935 213.13 / 0.55);
+  stroke-width: 1.4;
+  stroke-dasharray: 8 5;
+  vector-effect: non-scaling-stroke;
+}
+
+/* --------------------------------------------------------------------- */
+/* Setores                                                               */
+/* --------------------------------------------------------------------- */
+
+.map-sector {
+  fill: oklch(0.7535 0.139 232.66 / 0.04);
+  stroke: oklch(0.8549 0.1251 181.07 / 0.22);
+  stroke-width: 1.1;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+  transition:
+    fill 0.3s ease,
+    stroke 0.2s ease;
+}
+
+.map-sector.is-clickable {
+  cursor: pointer;
+}
+
+.map-sector.is-clickable:hover {
+  fill: oklch(0.7971 0.1339 211.53 / 0.1);
+  stroke: oklch(0.7971 0.1339 211.53 / 0.5);
+}
+
+.map-sector.is-selected {
+  stroke: var(--ag-cyan);
+  stroke-width: 1.8;
+  stroke-dasharray: none;
+  fill: oklch(0.7971 0.1339 211.53 / 0.08);
+}
+
+.map-sector.fill-normal {
+  fill: oklch(0.7227 0.192 149.58 / 0.2);
+  stroke: oklch(0.7227 0.192 149.58 / 0.45);
+}
+
+.map-sector.fill-attention {
+  fill: oklch(0.7686 0.1647 70.08 / 0.2);
+  stroke: oklch(0.7686 0.1647 70.08 / 0.45);
+}
+
+.map-sector.fill-high {
+  fill: oklch(0.7049 0.1867 47.6 / 0.24);
+  stroke: oklch(0.7049 0.1867 47.6 / 0.5);
+}
+
+.map-sector.fill-critical {
+  fill: oklch(0.6368 0.2078 25.33 / 0.28);
+  stroke: oklch(0.6368 0.2078 25.33 / 0.55);
+}
+
+.map-boundary {
+  fill: none;
+  stroke: oklch(0.8276 0.1013 230.32 / 0.45);
+  stroke-width: 1.4;
+  stroke-dasharray: 9 5;
+  vector-effect: non-scaling-stroke;
+}
+
+/* --------------------------------------------------------------------- */
+/* Sobreposições analíticas                                              */
+/* --------------------------------------------------------------------- */
+
+.map-heat g {
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.map-rain-radar ellipse {
+  fill: oklch(0.7535 0.139 232.66 / 0.1);
+  animation: ag-drift 14s ease-in-out infinite alternate;
+}
+
+.map-rain-radar ellipse:nth-child(2) {
+  animation-duration: 18s;
+}
+
+.map-rain-radar ellipse:nth-child(3) {
+  animation-duration: 22s;
+}
+
+.map-pressure-field ellipse {
+  fill: var(--ag-warning);
+}
+
+.map-consumption circle {
+  fill: oklch(0.7971 0.1339 211.53 / 0.14);
+  stroke: oklch(0.7971 0.1339 211.53 / 0.4);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-coverage circle {
+  fill: oklch(0.7971 0.1339 211.53 / 0.14);
+  transition: r 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.map-coverage-new {
+  fill: oklch(0.7227 0.192 149.58 / 0.22) !important;
+}
+
+.map-uncertainty ellipse {
+  transition: opacity 0.9s ease;
+}
+
+/* --------------------------------------------------------------------- */
+/* Redes                                                                 */
+/* --------------------------------------------------------------------- */
+
+.map-pipe {
+  fill: none;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-pipe-secondary {
+  stroke: oklch(0.7971 0.1339 211.53 / 0.26);
+  stroke-width: 0.6;
+  stroke-dasharray: 3 2.5;
+}
+
+.map-pipe-primary {
+  stroke: oklch(0.7971 0.1339 211.53 / 0.52);
+  stroke-width: 0.95;
+}
+
+.map-pipe-trunk {
+  stroke: var(--ag-cyan);
+  stroke-width: 1.7;
+  stroke-opacity: 0.85;
+  filter: url(#ag-line-glow);
+}
+
+.map-drainage path {
+  fill: none;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-drain-main {
+  stroke: oklch(0.7038 0.123 182.5 / 0.75);
+  stroke-width: 1.7;
+  stroke-dasharray: 9 4;
+  animation: ag-dash 2.4s linear infinite;
+}
+
+.map-drain-lateral {
+  stroke: oklch(0.7038 0.123 182.5 / 0.42);
+  stroke-width: 0.9;
+  stroke-dasharray: 4 3;
+}
+
+.map-priority-pipes path {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-opacity: 0.9;
+  vector-effect: non-scaling-stroke;
+  filter: url(#ag-line-glow);
+}
+
+.map-priority-pipes path.is-top {
+  stroke-width: 4;
+}
+
+/* --------------------------------------------------------------------- */
+/* Ativos pontuais                                                       */
+/* --------------------------------------------------------------------- */
+
+.map-valve {
+  fill: oklch(0.2037 0.0373 248.56);
+  stroke: var(--level);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-pump {
+  fill: oklch(0.2037 0.0373 248.56);
+  stroke: var(--level);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-pump-glyph {
+  stroke: var(--ag-text-2);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-sensor {
+  fill: var(--level);
+  stroke: oklch(0.1762 0.033 256.39);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-sensor-halo {
+  fill: none;
+  stroke: var(--level);
+  stroke-width: 1;
+  stroke-opacity: 0.45;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-sensor-halo.level-critical,
+.map-sensor-halo.level-high {
+  animation: ag-pulse-ring 2.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.map-reservoir {
+  fill: oklch(0.2037 0.0373 248.56 / 0.92);
+  stroke: var(--ag-blue);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-reservoir-fill {
+  fill: oklch(0.7535 0.139 232.66 / 0.6);
+}
+
+.map-node-label {
+  fill: var(--ag-text-2);
+  font-size: 8.5px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.map-facility {
+  fill: oklch(0.2037 0.0373 248.56 / 0.9);
+  stroke: var(--ag-text-2);
+  stroke-width: 1.3;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-facility-glyph {
+  stroke: var(--ag-text);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Sensor recomendado pelo Active Sensing */
+.map-recommendation-pulse {
+  fill: none;
+  stroke: var(--ag-warning);
+  stroke-width: 1.2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ag-pulse-ring 2s ease-in-out infinite;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-recommendation-ring {
+  fill: oklch(0.7686 0.1647 70.08 / 0.14);
+  stroke: var(--ag-warning);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-recommendation-core {
+  fill: var(--ag-warning);
+  stroke: oklch(0.1762 0.033 256.39);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-recommendation.is-installed .map-recommendation-pulse,
+.map-recommendation.is-installed .map-recommendation-ring {
+  stroke: var(--ag-success);
+}
+
+.map-recommendation.is-installed .map-recommendation-ring {
+  fill: oklch(0.7227 0.192 149.58 / 0.14);
+}
+
+.map-recommendation.is-installed .map-recommendation-core {
+  fill: var(--ag-success);
+}
+
+/* --------------------------------------------------------------------- */
+/* Rótulos, marcadores e balões                                          */
+/* --------------------------------------------------------------------- */
+
+.map-callout rect {
+  fill: oklch(0.1762 0.033 256.39 / 0.88);
+  stroke: oklch(0.8276 0.1013 230.32 / 0.28);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-callout-title {
+  fill: var(--ag-text);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.map-callout-detail {
+  fill: var(--ag-text-2);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.map-sector-code text {
+  fill: oklch(0.7107 0.0351 256.79 / 0.62);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-anchor: middle;
+}
+
+.map-sector-pill rect {
+  fill: oklch(0.1762 0.033 256.39 / 0.9);
+  stroke: color-mix(in oklab, var(--level) 65%, transparent);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-sector-pill text {
+  fill: var(--ag-text);
+  font-size: 9px;
+  font-weight: 650;
+  text-anchor: middle;
+}
+
+.map-sector-pill-caption {
+  fill: var(--level) !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+}
+
+.map-sector-pill.is-clickable {
+  cursor: pointer;
+}
+
+.map-sector-pill.is-selected rect {
+  fill: color-mix(in oklab, var(--level) 26%, oklch(0.1762 0.033 256.39));
+  stroke-width: 1.6;
+}
+
+.map-pin-halo {
+  opacity: 0.22;
+}
+
+.map-pin.is-pulsing .map-pin-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ag-pulse-ring 1.9s ease-in-out infinite;
+}
+
+.map-pin-core {
+  stroke: oklch(0.9842 0.0034 247.86 / 0.85);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-pin-glyph {
+  stroke: oklch(0.1762 0.033 256.39);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-pin-dot {
+  fill: oklch(0.1762 0.033 256.39);
+}
+
+/* --------------------------------------------------------------------- */
+/* Controles flutuantes                                                  */
+/* --------------------------------------------------------------------- */
+
+.ops-map .map-search {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  display: flex;
+  width: 252px;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--ag-border-strong);
+  border-radius: 8px;
+  background: oklch(0.1762 0.033 256.39 / 0.82);
+  backdrop-filter: blur(10px);
+}
+
+.map-search > svg {
+  width: 13px;
+  height: 13px;
+  color: var(--ag-text-3);
+}
+
+.map-search input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ag-text);
+  font-size: 11px;
+  outline: none;
+}
+
+.map-search input::placeholder {
+  color: var(--ag-text-3);
+}
+
+.map-search-results {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--ag-border-strong);
+  border-radius: 8px;
+  background: oklch(0.2439 0.0424 245.22 / 0.97);
+  box-shadow: var(--ag-shadow);
+  list-style: none;
+}
+
+.map-search-results button {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-search-results button:hover {
+  background: oklch(0.7971 0.1339 211.53 / 0.12);
+}
+
+.map-search-results strong {
+  color: var(--ag-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.map-search-results span {
+  color: var(--ag-text-3);
+  font-size: 9.5px;
+}
+
+.map-tabs {
+  position: absolute;
+  top: 12px;
+  right: 56px;
+  z-index: 3;
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--ag-border-strong);
+  border-radius: 8px;
+  background: oklch(0.1762 0.033 256.39 / 0.82);
+  backdrop-filter: blur(10px);
+}
+
+.map-tabs button {
+  padding: 5px 11px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ag-text-2);
+  font-size: 10.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.map-tabs button.active {
+  background: oklch(0.7971 0.1339 211.53 / 0.18);
+  color: var(--ag-cyan);
+  font-weight: 600;
+}
+
+.map-controls {
+  position: absolute;
+  top: 82px;
+  right: 12px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ag-border-strong);
+  border-radius: 8px;
+  background: oklch(0.1762 0.033 256.39 / 0.82);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.map-controls button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--ag-text-2);
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.map-controls button + button {
+  border-top: 1px solid var(--ag-border);
+}
+
+.map-controls button:hover {
+  background: oklch(0.7971 0.1339 211.53 / 0.14);
+  color: var(--ag-cyan);
+}
+
+.map-controls svg {
+  width: 14px;
+  height: 14px;
+}
+
+.map-compass {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  display: flex;
+  width: 30px;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 0;
+  border: 1px solid var(--ag-border-strong);
+  border-radius: 8px;
+  background: oklch(0.1762 0.033 256.39 / 0.82);
+  backdrop-filter: blur(10px);
+}
+
+.map-compass svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--ag-text-2);
+}
+
+.map-compass b {
+  color: var(--ag-text-2);
+  font-size: 8.5px;
+  font-weight: 700;
+}
+
+.map-layers {
+  position: absolute;
+  top: 54px;
+  left: 12px;
+  z-index: 3;
+  width: 204px;
+  padding: 8px;
+  border: 1px solid var(--ag-border-strong);
+  border-radius: 9px;
+  background: oklch(0.1762 0.033 256.39 / 0.86);
+  backdrop-filter: blur(12px);
+}
+
+.map-layers.is-collapsed {
+  width: auto;
+  padding: 4px;
+}
+
+.map-layers-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 4px 7px;
+  border: 0;
+  background: transparent;
+  color: var(--ag-text-2);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.map-layers.is-collapsed .map-layers-toggle {
+  padding: 4px 6px;
+}
+
+.map-layers-toggle svg {
+  width: 13px;
+  height: 13px;
+  color: var(--ag-cyan);
+}
+
+.map-layers ul {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ag-border);
+  padding-top: 5px;
+  list-style: none;
+}
+
+.map-layers li button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ag-text-3);
+  font-size: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.map-layers li button:hover {
+  background: oklch(0.8276 0.1013 230.32 / 0.08);
+  color: var(--ag-text-2);
+}
+
+.map-layers li button.active {
+  color: var(--ag-text);
+}
+
+.map-layers li button i {
+  display: grid;
+  width: 12px;
+  min-width: 12px;
+  height: 12px;
+  place-items: center;
+  border: 1px solid oklch(0.8276 0.1013 230.32 / 0.35);
+  border-radius: 3px;
+}
+
+.map-layers li button.active i {
+  border-color: var(--ag-cyan);
+  background: var(--ag-cyan);
+  color: oklch(0.1762 0.033 256.39);
+}
+
+.map-layers li button i svg {
+  width: 9px;
+  height: 9px;
+  stroke-width: 3.5;
+}
+
+.map-legend {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 3;
+  min-width: 168px;
+  padding: 9px 11px;
+  border: 1px solid var(--ag-border-strong);
+  border-radius: 9px;
+  background: oklch(0.1762 0.033 256.39 / 0.86);
+  backdrop-filter: blur(12px);
+}
+
+.map-legend-title {
+  display: block;
+  color: var(--ag-text-2);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.map-legend-bar {
+  margin-top: 7px;
+  height: 6px;
+  border-radius: 99px;
+}
+
+.map-legend-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--ag-text-3);
+  font-size: 8.5px;
+}
+
+.map-legend-swatches {
+  display: grid;
+  gap: 4px;
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.map-legend-swatches li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ag-text-2);
+  font-size: 9.5px;
+}
+
+.map-legend-swatches i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.map-scale {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+}
+
+.map-scale-bar {
+  display: flex;
+  width: 96px;
+  height: 5px;
+  border: 1px solid oklch(0.9842 0.0034 247.86 / 0.6);
+}
+
+.map-scale-bar i {
+  flex: 1;
+  background: oklch(0.9842 0.0034 247.86 / 0.75);
+}
+
+.map-scale-bar i.alt {
+  background: transparent;
+}
+
+.map-scale-ticks {
+  display: flex;
+  justify-content: space-between;
+  width: 96px;
+  margin-top: 2px;
+  color: var(--ag-text-2);
+  font-size: 8.5px;
+}
+
+@media (max-width: 900px) {
+  .ops-map .map-search {
+    width: 168px;
+  }
+
+  .map-tabs {
+    display: none;
+  }
+
+  .map-layers {
+    width: 170px;
+  }
+}
