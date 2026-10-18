@@ -1,0 +1,746 @@
+/*
+ * Componentes dos módulos: ranking de setores, cartões de sensor,
+ * evidências da detecção, sistemas de abastecimento, pontos de alagamento e
+ * ordens de serviço. Mesmas superfícies, bordas e tokens dos painéis.
+ */
+
+/* Cabeçalho de painel com legenda longa: a legenda desce de linha em vez
+   de invadir o título. */
+.panel-header {
+  flex-wrap: wrap;
+  row-gap: 4px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.panel-action {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.metric-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.explain-text {
+  color: var(--ag-text-2);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.explain-text + .explain-text {
+  margin-top: 10px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Ranking de setores (perdas, incerteza)                                */
+/* --------------------------------------------------------------------- */
+
+.rank-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rank-list li + li {
+  border-top: 1px solid var(--ag-border);
+}
+
+.rank-list button,
+.rank-static {
+  position: relative;
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 84px 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.rank-list button {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.rank-list button:hover {
+  background: oklch(0.8276 0.1013 230.32 / 0.05);
+}
+
+.rank-list button.is-selected {
+  background: oklch(0.7971 0.1339 211.53 / 0.08);
+}
+
+.rank-list button.is-selected::before {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--ag-cyan);
+  content: "";
+}
+
+.rank-name {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.rank-name strong {
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.rank-name small {
+  overflow: hidden;
+  color: var(--ag-text-3);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-bar {
+  display: block;
+  height: 5px;
+  border-radius: 99px;
+  background: oklch(0.8276 0.1013 230.32 / 0.1);
+  overflow: hidden;
+}
+
+.rank-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--level);
+}
+
+.rank-list b {
+  color: var(--level);
+  font-size: 12px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* --------------------------------------------------------------------- */
+/* Cartões de sensor                                                     */
+/* --------------------------------------------------------------------- */
+
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 10px;
+}
+
+.sensor-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--ag-border);
+  border-radius: 10px;
+  background: linear-gradient(
+    150deg,
+    oklch(0.2712 0.0471 243.79 / 0.55),
+    oklch(0.2439 0.0424 245.22 / 0.85)
+  );
+  cursor: help;
+  outline: none;
+}
+
+.sensor-card:not(.level-normal) {
+  border-color: color-mix(in oklab, var(--level) 32%, transparent);
+}
+
+.sensor-card:focus-visible {
+  border-color: var(--ag-cyan);
+}
+
+.sensor-card header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.sensor-card-icon {
+  display: grid;
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid oklch(0.7971 0.1339 211.53 / 0.24);
+  border-radius: 7px;
+  background: oklch(0.7971 0.1339 211.53 / 0.08);
+  color: var(--ag-cyan);
+}
+
+.sensor-card:not(.level-normal) .sensor-card-icon {
+  border-color: color-mix(in oklab, var(--level) 30%, transparent);
+  background: color-mix(in oklab, var(--level) 12%, transparent);
+  color: var(--level);
+}
+
+.sensor-card-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.sensor-card-id {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.sensor-card-id strong {
+  font-size: 11.5px;
+  font-weight: 650;
+}
+
+.sensor-card-id small {
+  overflow: hidden;
+  color: var(--ag-text-3);
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sensor-card-value {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sensor-card-value b {
+  font-size: 18px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sensor-card-value b em {
+  color: var(--ag-text-3);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.sensor-card-value .sparkline {
+  width: 72px;
+  height: 28px;
+}
+
+.sensor-card-hint {
+  color: var(--ag-text-3);
+  font-size: 9.5px;
+}
+
+.sensor-table td {
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.sensor-table td:nth-child(2),
+.sensor-table td:nth-child(3) {
+  min-width: 190px;
+}
+
+.sensor-table-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sensor-table-id svg {
+  width: 13px;
+  height: 13px;
+  color: var(--ag-cyan);
+}
+
+.data-table td .sensor-table-id strong {
+  display: inline;
+}
+
+.sensor-table-value {
+  color: var(--ag-text);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.sensor-table-value[class*="level-"] {
+  color: var(--level);
+}
+
+.sensor-table .sparkline {
+  width: 64px;
+  height: 24px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Evidências da detecção                                                */
+/* --------------------------------------------------------------------- */
+
+.evidence-grid {
+  display: grid;
+  gap: 7px;
+}
+
+.evidence-card {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 112px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--ag-border);
+  border-left: 2px solid var(--level);
+  border-radius: 8px;
+  background: oklch(0.2037 0.0373 248.56 / 0.35);
+}
+
+.evidence-card.level-normal {
+  --level: var(--ag-text-3);
+}
+
+.evidence-card-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--level) 12%, transparent);
+  color: var(--level);
+}
+
+.evidence-card-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.evidence-card-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.evidence-card-main span {
+  display: flex;
+  align-items: center;
+  color: var(--ag-text-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.evidence-card-main strong {
+  font-size: 12.5px;
+  font-weight: 620;
+}
+
+.evidence-card-weight {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.evidence-card-weight i {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  background: oklch(0.8276 0.1013 230.32 / 0.1);
+  overflow: hidden;
+}
+
+.evidence-card-weight i b {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--level);
+}
+
+.evidence-card-weight small {
+  color: var(--ag-text-3);
+  font-size: 9.5px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Sistemas de abastecimento                                             */
+/* --------------------------------------------------------------------- */
+
+.system-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+}
+
+.system-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid var(--ag-border);
+  border-top: 2px solid var(--level);
+  border-radius: 11px;
+  background: linear-gradient(
+    168deg,
+    oklch(0.2712 0.0471 243.79 / 0.62),
+    oklch(0.2439 0.0424 245.22 / 0.85)
+  );
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.system-card:hover {
+  border-color: var(--ag-border-strong);
+}
+
+.system-card.is-selected {
+  border-color: oklch(0.7971 0.1339 211.53 / 0.45);
+  border-top-color: var(--level);
+  box-shadow: 0 0 0 1px oklch(0.7971 0.1339 211.53 / 0.18) inset;
+}
+
+.system-card:focus-visible {
+  outline: 2px solid var(--ag-cyan);
+  outline-offset: 2px;
+}
+
+.system-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.system-card header strong {
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.system-card-level {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.system-card-level b {
+  color: var(--level);
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.system-card-level small,
+.system-card-sectors {
+  color: var(--ag-text-3);
+  font-size: 10px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Pontos críticos de alagamento                                         */
+/* --------------------------------------------------------------------- */
+
+.hotspot-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hotspot-list li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+}
+
+.hotspot-list li + li {
+  border-top: 1px solid var(--ag-border);
+}
+
+.hotspot-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--level) 32%, transparent);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--level) 12%, transparent);
+  color: var(--level);
+}
+
+.hotspot-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.hotspot-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hotspot-main strong {
+  font-size: 12px;
+  font-weight: 620;
+}
+
+.hotspot-main small {
+  overflow: hidden;
+  color: var(--ag-text-3);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hotspot-main .pipe-bar i {
+  background: var(--level);
+}
+
+.hotspot-metric {
+  display: grid;
+  justify-items: end;
+}
+
+.hotspot-metric small {
+  color: var(--ag-text-3);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hotspot-metric b {
+  color: var(--level);
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.facility-list {
+  display: block;
+  max-width: 280px;
+  color: var(--ag-text-3);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------- */
+/* Ordens de serviço                                                     */
+/* --------------------------------------------------------------------- */
+
+.order-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 13px;
+}
+
+.order-list li + li {
+  border-top: 1px solid var(--ag-border);
+}
+
+.order-list li div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.order-list li strong {
+  font-size: 11.5px;
+  font-weight: 650;
+}
+
+.order-list li > span {
+  color: var(--ag-text-2);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.order-list li small {
+  color: var(--ag-text-3);
+  font-size: 9.5px;
+}
+
+.data-table.is-compact {
+  margin-top: 12px;
+}
+
+.data-table.is-compact td,
+.data-table.is-compact th {
+  padding: 7px 10px;
+}
+
+.data-table th .info-tip {
+  margin-left: 3px;
+}
+
+.sim-processing.is-idle svg {
+  color: var(--ag-text-3);
+  animation: none;
+}
+
+.glossary-tip b {
+  color: var(--ag-text);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------- */
+/* Ajustes da revisão de front                                           */
+/* --------------------------------------------------------------------- */
+
+.data-table td.is-numeric,
+.scenario-table td.is-numeric {
+  white-space: nowrap;
+}
+
+.kpi-label .info-tip,
+.kpi-label .kpi-origin {
+  vertical-align: -2px;
+}
+
+/* Tabela de decisões: ação com espaço e justificativa em até duas linhas. */
+.data-table.is-wide td:first-child {
+  min-width: 230px;
+}
+
+.data-table.is-wide td:first-child small {
+  display: -webkit-box;
+  max-width: 340px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.data-table.is-wide td:nth-child(2) {
+  min-width: 170px;
+}
+
+/* Inventário de sensores agrupado por tipo */
+.sensor-table tr.group-row td {
+  padding-top: 12px;
+  padding-bottom: 8px;
+  background: oklch(0.2037 0.0373 248.56 / 0.45);
+}
+
+.sensor-table tr.group-row:hover td {
+  background: oklch(0.2037 0.0373 248.56 / 0.45);
+}
+
+.sensor-group {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 4px 18px;
+}
+
+.sensor-group strong {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  color: var(--ag-text) !important;
+  font-size: 12px !important;
+  white-space: nowrap;
+}
+
+.sensor-group strong svg {
+  width: 14px;
+  height: 14px;
+  color: var(--ag-cyan);
+}
+
+.sensor-group span {
+  color: var(--ag-text-2);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.sensor-group span b {
+  color: var(--ag-text-3);
+  font-weight: 600;
+}
+
+.module-tag {
+  margin-right: 6px;
+  color: var(--ag-cyan);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------- */
+/* Telas mais estreitas (1280–1440 px)                                   */
+/* --------------------------------------------------------------------- */
+
+.topbar-page-text h1 {
+  white-space: nowrap;
+}
+
+@media (max-width: 1440px) {
+  /* O cabeçalho tem muitos indicadores: os textos secundários saem primeiro. */
+  .topbar-weather small,
+  .user-text {
+    display: none;
+  }
+
+  .topbar-meta {
+    gap: 10px;
+  }
+
+  /* Sem espaço, a mini-série do KPI disputaria lugar com o valor. */
+  .kpi-card.has-spark .sparkline,
+  .kpi-card.has-spark .mini-bars {
+    display: none;
+  }
+
+  .kpi-card.has-spark {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1320px) {
+  .topbar-page-text h1 {
+    font-size: 21px;
+  }
+
+  .topbar-page-text p {
+    max-width: 260px;
+  }
+
+  .topbar-location small {
+    display: none;
+  }
+
+  .system-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

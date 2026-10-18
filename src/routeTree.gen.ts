@@ -11,15 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActiveSensingRouteImport } from './routes/active-sensing'
-import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
-import { Route as ConsumoRouteImport } from './routes/consumo'
 import { Route as DecisoesRouteImport } from './routes/decisoes'
 import { Route as EnchentesRouteImport } from './routes/enchentes'
-import { Route as InfraestruturaRouteImport } from './routes/infraestrutura'
-import { Route as ManutencaoRouteImport } from './routes/manutencao'
 import { Route as PerdasRouteImport } from './routes/perdas'
-import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as SecaRouteImport } from './routes/seca'
+import { Route as ApiDecisionsRouteImport } from './routes/api/decisions'
+import { Route as ApiDroughtRouteImport } from './routes/api/drought'
+import { Route as ApiFloodRouteImport } from './routes/api/flood'
+import { Route as ApiLiveRouteImport } from './routes/api/live'
+import { Route as ApiLossesRouteImport } from './routes/api/losses'
+import { Route as ApiLossesReplayRouteImport } from './routes/api/losses-replay'
+import { Route as ApiSensingRouteImport } from './routes/api/sensing'
+import { Route as ApiWeatherRouteImport } from './routes/api/weather'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,16 +32,6 @@ const IndexRoute = IndexRouteImport.update({
 const ActiveSensingRoute = ActiveSensingRouteImport.update({
   id: '/active-sensing',
   path: '/active-sensing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConsumoRoute = ConsumoRouteImport.update({
-  id: '/consumo',
-  path: '/consumo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DecisoesRoute = DecisoesRouteImport.update({
@@ -51,24 +44,9 @@ const EnchentesRoute = EnchentesRouteImport.update({
   path: '/enchentes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InfraestruturaRoute = InfraestruturaRouteImport.update({
-  id: '/infraestrutura',
-  path: '/infraestrutura',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ManutencaoRoute = ManutencaoRouteImport.update({
-  id: '/manutencao',
-  path: '/manutencao',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PerdasRoute = PerdasRouteImport.update({
   id: '/perdas',
   path: '/perdas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RelatoriosRoute = RelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SecaRoute = SecaRouteImport.update({
@@ -76,101 +54,162 @@ const SecaRoute = SecaRouteImport.update({
   path: '/seca',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDecisionsRoute = ApiDecisionsRouteImport.update({
+  id: '/api/decisions',
+  path: '/api/decisions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDroughtRoute = ApiDroughtRouteImport.update({
+  id: '/api/drought',
+  path: '/api/drought',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFloodRoute = ApiFloodRouteImport.update({
+  id: '/api/flood',
+  path: '/api/flood',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLiveRoute = ApiLiveRouteImport.update({
+  id: '/api/live',
+  path: '/api/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLossesRoute = ApiLossesRouteImport.update({
+  id: '/api/losses',
+  path: '/api/losses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLossesReplayRoute = ApiLossesReplayRouteImport.update({
+  id: '/api/losses-replay',
+  path: '/api/losses-replay',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSensingRoute = ApiSensingRouteImport.update({
+  id: '/api/sensing',
+  path: '/api/sensing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWeatherRoute = ApiWeatherRouteImport.update({
+  id: '/api/weather',
+  path: '/api/weather',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/active-sensing': typeof ActiveSensingRoute
-  '/configuracoes': typeof ConfiguracoesRoute
-  '/consumo': typeof ConsumoRoute
   '/decisoes': typeof DecisoesRoute
   '/enchentes': typeof EnchentesRoute
-  '/infraestrutura': typeof InfraestruturaRoute
-  '/manutencao': typeof ManutencaoRoute
   '/perdas': typeof PerdasRoute
-  '/relatorios': typeof RelatoriosRoute
   '/seca': typeof SecaRoute
+  '/api/decisions': typeof ApiDecisionsRoute
+  '/api/drought': typeof ApiDroughtRoute
+  '/api/flood': typeof ApiFloodRoute
+  '/api/live': typeof ApiLiveRoute
+  '/api/losses': typeof ApiLossesRoute
+  '/api/losses-replay': typeof ApiLossesReplayRoute
+  '/api/sensing': typeof ApiSensingRoute
+  '/api/weather': typeof ApiWeatherRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/active-sensing': typeof ActiveSensingRoute
-  '/configuracoes': typeof ConfiguracoesRoute
-  '/consumo': typeof ConsumoRoute
   '/decisoes': typeof DecisoesRoute
   '/enchentes': typeof EnchentesRoute
-  '/infraestrutura': typeof InfraestruturaRoute
-  '/manutencao': typeof ManutencaoRoute
   '/perdas': typeof PerdasRoute
-  '/relatorios': typeof RelatoriosRoute
   '/seca': typeof SecaRoute
+  '/api/decisions': typeof ApiDecisionsRoute
+  '/api/drought': typeof ApiDroughtRoute
+  '/api/flood': typeof ApiFloodRoute
+  '/api/live': typeof ApiLiveRoute
+  '/api/losses': typeof ApiLossesRoute
+  '/api/losses-replay': typeof ApiLossesReplayRoute
+  '/api/sensing': typeof ApiSensingRoute
+  '/api/weather': typeof ApiWeatherRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/active-sensing': typeof ActiveSensingRoute
-  '/configuracoes': typeof ConfiguracoesRoute
-  '/consumo': typeof ConsumoRoute
   '/decisoes': typeof DecisoesRoute
   '/enchentes': typeof EnchentesRoute
-  '/infraestrutura': typeof InfraestruturaRoute
-  '/manutencao': typeof ManutencaoRoute
   '/perdas': typeof PerdasRoute
-  '/relatorios': typeof RelatoriosRoute
   '/seca': typeof SecaRoute
+  '/api/decisions': typeof ApiDecisionsRoute
+  '/api/drought': typeof ApiDroughtRoute
+  '/api/flood': typeof ApiFloodRoute
+  '/api/live': typeof ApiLiveRoute
+  '/api/losses': typeof ApiLossesRoute
+  '/api/losses-replay': typeof ApiLossesReplayRoute
+  '/api/sensing': typeof ApiSensingRoute
+  '/api/weather': typeof ApiWeatherRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/active-sensing'
-    | '/configuracoes'
-    | '/consumo'
     | '/decisoes'
     | '/enchentes'
-    | '/infraestrutura'
-    | '/manutencao'
     | '/perdas'
-    | '/relatorios'
     | '/seca'
+    | '/api/decisions'
+    | '/api/drought'
+    | '/api/flood'
+    | '/api/live'
+    | '/api/losses'
+    | '/api/losses-replay'
+    | '/api/sensing'
+    | '/api/weather'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/active-sensing'
-    | '/configuracoes'
-    | '/consumo'
     | '/decisoes'
     | '/enchentes'
-    | '/infraestrutura'
-    | '/manutencao'
     | '/perdas'
-    | '/relatorios'
     | '/seca'
+    | '/api/decisions'
+    | '/api/drought'
+    | '/api/flood'
+    | '/api/live'
+    | '/api/losses'
+    | '/api/losses-replay'
+    | '/api/sensing'
+    | '/api/weather'
   id:
     | '__root__'
     | '/'
     | '/active-sensing'
-    | '/configuracoes'
-    | '/consumo'
     | '/decisoes'
     | '/enchentes'
-    | '/infraestrutura'
-    | '/manutencao'
     | '/perdas'
-    | '/relatorios'
     | '/seca'
+    | '/api/decisions'
+    | '/api/drought'
+    | '/api/flood'
+    | '/api/live'
+    | '/api/losses'
+    | '/api/losses-replay'
+    | '/api/sensing'
+    | '/api/weather'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActiveSensingRoute: typeof ActiveSensingRoute
-  ConfiguracoesRoute: typeof ConfiguracoesRoute
-  ConsumoRoute: typeof ConsumoRoute
   DecisoesRoute: typeof DecisoesRoute
   EnchentesRoute: typeof EnchentesRoute
-  InfraestruturaRoute: typeof InfraestruturaRoute
-  ManutencaoRoute: typeof ManutencaoRoute
   PerdasRoute: typeof PerdasRoute
-  RelatoriosRoute: typeof RelatoriosRoute
   SecaRoute: typeof SecaRoute
+  ApiDecisionsRoute: typeof ApiDecisionsRoute
+  ApiDroughtRoute: typeof ApiDroughtRoute
+  ApiFloodRoute: typeof ApiFloodRoute
+  ApiLiveRoute: typeof ApiLiveRoute
+  ApiLossesRoute: typeof ApiLossesRoute
+  ApiLossesReplayRoute: typeof ApiLossesReplayRoute
+  ApiSensingRoute: typeof ApiSensingRoute
+  ApiWeatherRoute: typeof ApiWeatherRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -189,20 +228,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActiveSensingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/configuracoes': {
-      id: '/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/consumo': {
-      id: '/consumo'
-      path: '/consumo'
-      fullPath: '/consumo'
-      preLoaderRoute: typeof ConsumoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/decisoes': {
       id: '/decisoes'
       path: '/decisoes'
@@ -217,32 +242,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnchentesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/infraestrutura': {
-      id: '/infraestrutura'
-      path: '/infraestrutura'
-      fullPath: '/infraestrutura'
-      preLoaderRoute: typeof InfraestruturaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/manutencao': {
-      id: '/manutencao'
-      path: '/manutencao'
-      fullPath: '/manutencao'
-      preLoaderRoute: typeof ManutencaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/perdas': {
       id: '/perdas'
       path: '/perdas'
       fullPath: '/perdas'
       preLoaderRoute: typeof PerdasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/relatorios': {
-      id: '/relatorios'
-      path: '/relatorios'
-      fullPath: '/relatorios'
-      preLoaderRoute: typeof RelatoriosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/seca': {
@@ -252,21 +256,80 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SecaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/decisions': {
+      id: '/api/decisions'
+      path: '/api/decisions'
+      fullPath: '/api/decisions'
+      preLoaderRoute: typeof ApiDecisionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/drought': {
+      id: '/api/drought'
+      path: '/api/drought'
+      fullPath: '/api/drought'
+      preLoaderRoute: typeof ApiDroughtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/flood': {
+      id: '/api/flood'
+      path: '/api/flood'
+      fullPath: '/api/flood'
+      preLoaderRoute: typeof ApiFloodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/live': {
+      id: '/api/live'
+      path: '/api/live'
+      fullPath: '/api/live'
+      preLoaderRoute: typeof ApiLiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/losses': {
+      id: '/api/losses'
+      path: '/api/losses'
+      fullPath: '/api/losses'
+      preLoaderRoute: typeof ApiLossesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/losses-replay': {
+      id: '/api/losses-replay'
+      path: '/api/losses-replay'
+      fullPath: '/api/losses-replay'
+      preLoaderRoute: typeof ApiLossesReplayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sensing': {
+      id: '/api/sensing'
+      path: '/api/sensing'
+      fullPath: '/api/sensing'
+      preLoaderRoute: typeof ApiSensingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/weather': {
+      id: '/api/weather'
+      path: '/api/weather'
+      fullPath: '/api/weather'
+      preLoaderRoute: typeof ApiWeatherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActiveSensingRoute: ActiveSensingRoute,
-  ConfiguracoesRoute: ConfiguracoesRoute,
-  ConsumoRoute: ConsumoRoute,
   DecisoesRoute: DecisoesRoute,
   EnchentesRoute: EnchentesRoute,
-  InfraestruturaRoute: InfraestruturaRoute,
-  ManutencaoRoute: ManutencaoRoute,
   PerdasRoute: PerdasRoute,
-  RelatoriosRoute: RelatoriosRoute,
   SecaRoute: SecaRoute,
+  ApiDecisionsRoute: ApiDecisionsRoute,
+  ApiDroughtRoute: ApiDroughtRoute,
+  ApiFloodRoute: ApiFloodRoute,
+  ApiLiveRoute: ApiLiveRoute,
+  ApiLossesRoute: ApiLossesRoute,
+  ApiLossesReplayRoute: ApiLossesReplayRoute,
+  ApiSensingRoute: ApiSensingRoute,
+  ApiWeatherRoute: ApiWeatherRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

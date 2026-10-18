@@ -1,0 +1,551 @@
+/*
+ * Narrativa e explicabilidade: faixa de história, seções numeradas,
+ * tooltips de glossário, selos de origem do dado, cartões de desafio e
+ * linha do tempo. Mesmos tokens e superfícies do restante do sistema.
+ */
+
+/* --------------------------------------------------------------------- */
+/* Tooltips de explicação                                                */
+/* --------------------------------------------------------------------- */
+
+.info-tip {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ag-text-3);
+  cursor: help;
+  vertical-align: middle;
+  transition: color 0.15s ease;
+}
+
+.info-tip:hover,
+.info-tip:focus-visible {
+  color: var(--ag-cyan);
+  outline: none;
+}
+
+.info-tip svg {
+  width: 12px;
+  height: 12px;
+}
+
+.glossary-tip {
+  display: grid;
+  max-width: 290px;
+  gap: 3px;
+  padding: 9px 11px !important;
+  border: 1px solid var(--ag-border-strong);
+  background: oklch(0.2037 0.0373 248.56 / 0.98) !important;
+  box-shadow: var(--ag-shadow);
+  color: var(--ag-text-2) !important;
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+
+.glossary-tip strong {
+  color: var(--ag-text);
+  font-size: 11.5px;
+  font-weight: 650;
+}
+
+.term {
+  border-bottom: 1px dotted oklch(0.7971 0.1339 211.53 / 0.6);
+  cursor: help;
+}
+
+.term:focus-visible {
+  outline: none;
+  color: var(--ag-cyan);
+}
+
+/* --------------------------------------------------------------------- */
+/* Origem do dado                                                        */
+/* --------------------------------------------------------------------- */
+
+.origin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 19px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in oklab, var(--origin) 38%, transparent);
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--origin) 10%, transparent);
+  color: var(--origin);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.origin-badge i,
+.kpi-origin {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--origin);
+}
+
+.origin-real {
+  --origin: var(--ag-success);
+}
+
+.origin-simulado {
+  --origin: var(--ag-warning);
+}
+
+.origin-modelo {
+  --origin: var(--ag-blue);
+}
+
+.kpi-origin {
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* --------------------------------------------------------------------- */
+/* Faixa de história e seções                                            */
+/* --------------------------------------------------------------------- */
+
+.story-banner {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--ag-border);
+  border-left: 3px solid var(--level, var(--ag-cyan));
+  border-radius: 11px;
+  background: linear-gradient(
+    100deg,
+    color-mix(in oklab, var(--level, var(--ag-cyan)) 9%, oklch(0.2439 0.0424 245.22 / 0.9)),
+    oklch(0.2439 0.0424 245.22 / 0.75)
+  );
+}
+
+.story-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--level, var(--ag-cyan)) 34%, transparent);
+  border-radius: 9px;
+  background: color-mix(in oklab, var(--level, var(--ag-cyan)) 14%, transparent);
+  color: var(--level, var(--ag-cyan));
+}
+
+.story-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.story-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.story-text strong {
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.story-text p {
+  color: var(--ag-text-2);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.story-aside {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.story-section {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.section-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ag-border);
+}
+
+.section-index {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid oklch(0.7971 0.1339 211.53 / 0.3);
+  border-radius: 8px;
+  background: oklch(0.7971 0.1339 211.53 / 0.08);
+  color: var(--ag-cyan);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.section-heading-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.section-heading-text h2 {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.section-heading-text p {
+  color: var(--ag-text-3);
+  font-size: 11px;
+}
+
+.section-heading-aside {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------------- */
+/* Trilha dados → ação                                                   */
+/* --------------------------------------------------------------------- */
+
+.pipeline-step {
+  cursor: help;
+  transition: background 0.18s ease;
+}
+
+.pipeline-step:hover,
+.pipeline-step:focus-visible {
+  background: oklch(0.2712 0.0471 243.79 / 0.95);
+  outline: none;
+}
+
+.pipeline-step.is-alert .pipeline-text strong {
+  color: var(--ag-critical);
+}
+
+.pipeline-icon {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  color: var(--ag-text-3);
+}
+
+.pipeline-step.is-alert .pipeline-icon {
+  color: var(--ag-critical);
+}
+
+.pipeline-text i {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------- */
+/* Cartões de desafio                                                    */
+/* --------------------------------------------------------------------- */
+
+.challenge-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.challenge-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: start;
+  gap: 6px 11px;
+  padding: 13px 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.18s ease;
+}
+
+.challenge-card + .challenge-card {
+  border-top: 1px solid var(--ag-border);
+}
+
+.challenge-card::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--level);
+  opacity: 0.8;
+  content: "";
+}
+
+.challenge-card:hover {
+  background: oklch(0.8276 0.1013 230.32 / 0.05);
+}
+
+.challenge-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--level) 32%, transparent);
+  border-radius: 9px;
+  background: color-mix(in oklab, var(--level) 12%, transparent);
+  color: var(--level);
+}
+
+.challenge-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.challenge-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.challenge-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.challenge-top small {
+  color: var(--ag-text-3);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.challenge-main strong {
+  font-size: 12.5px;
+  font-weight: 620;
+}
+
+.challenge-detail {
+  color: var(--ag-text-2);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.challenge-metric {
+  display: flex;
+  grid-column: 2;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.challenge-metric b {
+  color: var(--level);
+  font-size: 17px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.challenge-metric i {
+  color: var(--ag-text-3);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.challenge-metric svg {
+  width: 13px;
+  height: 13px;
+  margin-left: auto;
+  align-self: center;
+  color: var(--ag-text-3);
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+.challenge-card:hover .challenge-metric svg {
+  color: var(--ag-cyan);
+  transform: translateX(2px);
+}
+
+/* --------------------------------------------------------------------- */
+/* Linha do tempo                                                        */
+/* --------------------------------------------------------------------- */
+
+.timeline {
+  margin: 0;
+  padding: 8px 13px 10px;
+  list-style: none;
+}
+
+.timeline li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 78px 22px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.timeline li + li::before {
+  position: absolute;
+  top: -8px;
+  left: 96px;
+  width: 1px;
+  height: 18px;
+  background: var(--ag-border-strong);
+  content: "";
+}
+
+.timeline-time {
+  padding-top: 3px;
+  color: var(--ag-text-3);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.timeline-dot {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid color-mix(in oklab, var(--level) 40%, transparent);
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--level) 14%, var(--ag-surface-1));
+  color: var(--level);
+}
+
+.timeline-dot svg {
+  width: 11px;
+  height: 11px;
+}
+
+.timeline-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.timeline-text strong {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.timeline-text small {
+  color: var(--ag-text-3);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------- */
+/* Estados e cabeçalho                                                   */
+/* --------------------------------------------------------------------- */
+
+.loading-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ag-text-3);
+  font-size: 11px;
+}
+
+.topbar-weather {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 12px;
+  border-left: 1px solid var(--ag-border-strong);
+  white-space: nowrap;
+  cursor: help;
+}
+
+.topbar-weather svg {
+  width: 15px;
+  height: 15px;
+  color: var(--ag-blue);
+}
+
+.topbar-weather span {
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar-weather strong {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.topbar-weather small {
+  margin-top: 1px;
+  color: var(--ag-text-3);
+  font-size: 9.5px;
+}
+
+.system-chip.has-alert {
+  border-color: oklch(0.6368 0.2078 25.33 / 0.35);
+  background: oklch(0.6368 0.2078 25.33 / 0.1);
+}
+
+.system-chip.has-alert i {
+  background: var(--ag-critical);
+  box-shadow: 0 0 8px var(--ag-critical);
+}
+
+.system-chip.is-simulated {
+  border-color: oklch(0.7686 0.1647 70.08 / 0.4);
+  background: oklch(0.7686 0.1647 70.08 / 0.12);
+  color: var(--ag-warning);
+  cursor: pointer;
+}
+
+.system-chip svg {
+  width: 12px;
+  height: 12px;
+}
+
+.sidebar-source {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 10px 10px;
+  color: var(--ag-text-3);
+  font-size: 9.5px;
+  line-height: 1.4;
+}
+
+.is-collapsed .sidebar-source {
+  display: none;
+}
+
+.sidebar-foot .sidebar-collapse {
+  align-self: flex-end;
+}
+
+.is-collapsed .sidebar-foot .sidebar-collapse {
+  align-self: center;
+}

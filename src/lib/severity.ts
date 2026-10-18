@@ -25,11 +25,11 @@ export const severityOrder: Record<Severity, number> = {
   normal: 4,
 };
 
+/** Mesmas faixas do motor de detecção (servidor): 80 / 60 / 35. */
 export function severityFromProbability(probability: number): Severity {
   if (probability >= 80) return "critical";
-  if (probability >= 70) return "high";
-  if (probability >= 60) return "attention";
-  if (probability >= 45) return "info";
+  if (probability >= 60) return "high";
+  if (probability >= 35) return "attention";
   return "normal";
 }
 

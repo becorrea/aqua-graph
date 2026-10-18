@@ -4,6 +4,8 @@
 @import "./styles/shell.css";
 @import "./styles/map.css";
 @import "./styles/modules.css";
+@import "./styles/story.css";
+@import "./styles/components.css";
 
 @custom-variant dark (&:is(.dark *));
 

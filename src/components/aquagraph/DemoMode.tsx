@@ -22,6 +22,7 @@ import { ChevronLeft, ChevronRight, Droplets, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useScenario } from "./ScenarioContext";
 
 export type DemoStepId = "overview" | "leaks" | "drought" | "flood" | "sensing";
 
@@ -36,7 +37,7 @@ const openingStep: DemoStep = {
   id: "overview",
   to: "/",
   title: "Visão Geral",
-  narrative: "Uma cidade inteira vista como um único sistema hídrico.",
+  narrative: "Ribeirão Preto real no mapa: sensores, modelos e decisões num único sistema hídrico.",
 };
 
 export const demoSteps: DemoStep[] = [
@@ -45,25 +46,25 @@ export const demoSteps: DemoStep[] = [
     id: "leaks",
     to: "/perdas",
     title: "Vazamento",
-    narrative: "Sinais combinados de pressão e vazão antecipam uma perda física.",
+    narrative: "Hora a hora: pressão, vazão noturna e balanço revelam um vazamento não visível.",
   },
   {
     id: "drought",
     to: "/seca",
     title: "Seca",
-    narrative: "Cenários operacionais transformam projeção em resposta preventiva.",
+    narrative: "Teste de estresse: quanto tempo cada medida compra se o calor apertar.",
   },
   {
     id: "flood",
     to: "/enchentes",
     title: "Enchente",
-    narrative: "Risco hidrológico priorizado em tempo quase real.",
+    narrative: "Tempestade de 74 mm em 3 h sobre o relevo real: onde e quando a drenagem falha.",
   },
   {
     id: "sensing",
     to: "/active-sensing",
     title: "Active Sensing",
-    narrative: "A inteligência indica onde observar para reduzir a incerteza.",
+    narrative: "Onde o próximo sensor reduz mais a incerteza — e quanto ele vale.",
   },
 ];
 
@@ -113,6 +114,7 @@ export function useDemoCue(stepId: DemoStepId, run: () => void) {
 
 export function DemoProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const scenario = useScenario();
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
   const [cue, setCue] = useState(0);
@@ -132,19 +134,23 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [navigate],
   );
 
+  const { reset } = scenario;
+
   const start = useCallback(() => {
+    reset();
     setActive(true);
     setFinished(false);
     setStep(0);
     setCue((value) => value + 1);
     void navigate({ to: openingStep.to });
-  }, [navigate]);
+  }, [navigate, reset]);
 
   const stop = useCallback(() => {
     setActive(false);
     setFinished(false);
     setStep(0);
-  }, []);
+    reset();
+  }, [reset]);
 
   const value = useMemo<DemoContextValue>(
     () => ({

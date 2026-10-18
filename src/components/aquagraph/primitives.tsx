@@ -1,11 +1,150 @@
 import { useId, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Info, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { severityLabel } from "@/lib/severity";
+import { glossary, type GlossaryKey } from "@/lib/glossary";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Severity } from "@/types";
+import type { DataOrigin } from "@/types/api";
 
 export type Tone = "cyan" | "blue" | "teal" | "success" | "warning" | "high" | "critical";
+
+// ---------------------------------------------------------------------------
+// Explicações (tooltips)
+// ---------------------------------------------------------------------------
+
+type Explanation = GlossaryKey | { term: string; definition: string };
+
+function resolve(explanation: Explanation) {
+  return typeof explanation === "string" ? glossary[explanation] : explanation;
+}
+
+/** Ícone ⓘ com a explicação de um indicador ou conceito. */
+export function InfoTip({
+  explain,
+  side = "top",
+}: {
+  explain: Explanation;
+  side?: "top" | "right" | "bottom" | "left";
+}) {
+  const entry = resolve(explain);
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button type="button" className="info-tip" aria-label={`O que é: ${entry.term}`}>
+          <Info />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side={side} className="glossary-tip">
+        <strong>{entry.term}</strong>
+        <span>{entry.definition}</span>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+/** Termo técnico sublinhado que explica a si mesmo ao passar o mouse. */
+export function Term({ explain, children }: { explain: Explanation; children: ReactNode }) {
+  const entry = resolve(explain);
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="term" tabIndex={0}>
+          {children}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="glossary-tip">
+        <strong>{entry.term}</strong>
+        <span>{entry.definition}</span>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+const ORIGIN_LABEL: Record<DataOrigin, string> = {
+  real: "Dado real",
+  simulado: "Simulado",
+  modelo: "Modelo",
+};
+const ORIGIN_HINT: Record<DataOrigin, string> = {
+  real: "Vem de fonte pública ao vivo ou do OpenStreetMap.",
+  simulado: "Leitura de sensor sintético, gerada pelo motor de simulação do AquaGraph.",
+  modelo: "Resultado de cálculo do modelo a partir dos dados (estimativa, não medição).",
+};
+
+/** Selo de origem: deixa explícito o que é real, simulado ou calculado. */
+export function OriginBadge({ origin, label }: { origin: DataOrigin; label?: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={cn("origin-badge", `origin-${origin}`)} tabIndex={0}>
+          <i />
+          {label ?? ORIGIN_LABEL[origin]}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="glossary-tip">
+        <span>{ORIGIN_HINT[origin]}</span>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Narrativa
+// ---------------------------------------------------------------------------
+
+/** Faixa de abertura da tela: o que está acontecendo, em uma ou duas frases. */
+export function StoryBanner({
+  icon: Icon,
+  level = "info",
+  title,
+  children,
+  aside,
+}: {
+  icon: LucideIcon;
+  level?: Severity;
+  title: string;
+  children: ReactNode;
+  aside?: ReactNode;
+}) {
+  return (
+    <section className={cn("story-banner", `level-${level}`)}>
+      <span className="story-icon">
+        <Icon />
+      </span>
+      <div className="story-text">
+        <strong>{title}</strong>
+        <p>{children}</p>
+      </div>
+      {aside && <div className="story-aside">{aside}</div>}
+    </section>
+  );
+}
+
+/** Cabeçalho numerado das seções da narrativa (01 Dados coletados, 02 Riscos...). */
+export function SectionHeading({
+  index,
+  title,
+  description,
+  aside,
+}: {
+  index: number;
+  title: string;
+  description?: string;
+  aside?: ReactNode;
+}) {
+  return (
+    <header className="section-heading">
+      <span className="section-index">{String(index).padStart(2, "0")}</span>
+      <div className="section-heading-text">
+        <h2>{title}</h2>
+        {description && <p>{description}</p>}
+      </div>
+      {aside && <div className="section-heading-aside">{aside}</div>}
+    </header>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Superfícies
@@ -29,17 +168,20 @@ export function PanelHeader({
   hint,
   action,
   icon: Icon,
+  info,
 }: {
   title: string;
-  hint?: string;
+  hint?: string | undefined;
   action?: ReactNode;
-  icon?: LucideIcon;
+  icon?: LucideIcon | undefined;
+  info?: Explanation | undefined;
 }) {
   return (
     <header className="panel-header">
       <div className="panel-heading">
         {Icon && <Icon className="panel-heading-icon" />}
         <h2>{title}</h2>
+        {info && <InfoTip explain={info} />}
         {hint && <span className="panel-hint">{hint}</span>}
       </div>
       {action && <div className="panel-action">{action}</div>}
@@ -169,27 +311,37 @@ export function KpiCard({
   sparkKind = "area",
   progress,
   status,
+  info,
+  origin,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
-  unit?: string;
-  delta?: string;
+  unit?: string | undefined;
+  delta?: string | undefined;
   deltaTone?: "positive" | "negative" | "neutral";
-  hint?: string;
+  hint?: string | undefined;
   tone?: Tone;
-  spark?: number[];
+  spark?: number[] | undefined;
   sparkKind?: "area" | "bars";
-  progress?: number;
-  status?: Severity;
+  progress?: number | undefined;
+  status?: Severity | undefined;
+  info?: Explanation | undefined;
+  origin?: DataOrigin | undefined;
 }) {
   return (
-    <article className="kpi-card">
+    <article className={cn("kpi-card", spark && "has-spark")}>
       <span className={cn("kpi-icon", `tone-${tone}`)}>
         <Icon />
       </span>
       <div className="kpi-main">
-        <span className="kpi-label">{label}</span>
+        <span className="kpi-label">
+          {label}
+          {info && <InfoTip explain={info} />}
+          {origin && (
+            <i className={cn("kpi-origin", `origin-${origin}`)} title={ORIGIN_LABEL[origin]} />
+          )}
+        </span>
         <div className="kpi-value-row">
           <strong className="kpi-value">
             {value}
@@ -223,7 +375,13 @@ export function KpiStrip({ children, columns = 4 }: { children: ReactNode; colum
 // Blocos de leitura
 // ---------------------------------------------------------------------------
 
-export function MetricGrid({ children, columns = 2 }: { children: ReactNode; columns?: 2 | 3 }) {
+export function MetricGrid({
+  children,
+  columns = 2,
+}: {
+  children: ReactNode;
+  columns?: 2 | 3 | 4;
+}) {
   return <div className={cn("metric-grid", `metric-grid-${columns}`)}>{children}</div>;
 }
 
@@ -232,15 +390,20 @@ export function Metric({
   value,
   tone,
   hint,
+  info,
 }: {
   label: string;
   value: ReactNode;
-  tone?: Tone;
-  hint?: string;
+  tone?: Tone | undefined;
+  hint?: string | undefined;
+  info?: Explanation | undefined;
 }) {
   return (
     <div className="metric">
-      <span className="metric-label">{label}</span>
+      <span className="metric-label">
+        {label}
+        {info && <InfoTip explain={info} />}
+      </span>
       <strong className={cn("metric-value", tone && `text-${tone}`)}>{value}</strong>
       {hint && <small className="metric-hint">{hint}</small>}
     </div>
@@ -317,4 +480,20 @@ export function LiveTag({ children }: { children: ReactNode }) {
 
 export function EmptyHint({ children }: { children: ReactNode }) {
   return <p className="empty-hint">{children}</p>;
+}
+
+/** Bloco de carregamento com a mesma geometria do conteúdo final. */
+export function LoadingBlock({
+  height = 120,
+  label = "Carregando dados…",
+}: {
+  height?: number;
+  label?: string;
+}) {
+  return (
+    <div className="loading-block" style={{ minHeight: height }}>
+      <span className="map-loading-dot" />
+      {label}
+    </div>
+  );
 }

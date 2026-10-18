@@ -1,57 +1,63 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Bell,
   ChevronLeft,
   ChevronRight,
+  CloudSun,
   Droplets,
+  FlaskConical,
   MapPin,
   PanelLeft,
   Play,
+  RotateCcw,
   TriangleAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { city } from "@/data/city";
-import { defaultPageMeta, navSections, pageMeta, settingsNavItem } from "@/data/navigation";
-import { useSimulatedClock } from "@/hooks/useSimulatedClock";
+import { useLive } from "@/lib/api";
+import { defaultPageMeta, navSections, pageMeta } from "@/data/navigation";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DemoProvider, useDemo } from "./DemoMode";
+import { ScenarioProvider, useScenario } from "./ScenarioContext";
 import { StatusBadge } from "./primitives";
 
-const NOTIFICATIONS = [
-  {
-    id: "N-01",
-    title: "Setor 14-B — possível vazamento",
-    detail: "Probabilidade subiu para 87% nas últimas 2 horas",
-    level: "critical" as const,
-    age: "Há 8 min",
-  },
-  {
-    id: "N-02",
-    title: "Chuva intensa prevista",
-    detail: "74 mm acumulados projetados para as próximas 3 horas",
-    level: "high" as const,
-    age: "Há 21 min",
-  },
-  {
-    id: "N-03",
-    title: "Reservatório Norte em queda",
-    detail: "Horizonte de abastecimento reduzido para 38 dias",
-    level: "attention" as const,
-    age: "Há 1h",
-  },
-];
+const OPERATOR = { initials: "AS", name: "Ana Silva", role: "Operadora · CCO" };
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <TooltipProvider delayDuration={220}>
-      <DemoProvider>
-        <ShellLayout>{children}</ShellLayout>
-      </DemoProvider>
+      <ScenarioProvider>
+        <DemoProvider>
+          <ShellLayout>{children}</ShellLayout>
+        </DemoProvider>
+      </ScenarioProvider>
     </TooltipProvider>
   );
+}
+
+/** Relógio local (America/Sao_Paulo). Só aparece depois da hidratação. */
+function useClock() {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const timer = window.setInterval(() => setNow(new Date()), 15_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  if (!now) return null;
+  const time = now.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  });
+  const date = now.toLocaleDateString("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    timeZone: "America/Sao_Paulo",
+  });
+  return { time, date: date.replace(".", "").replace(/^\w/, (c) => c.toUpperCase()) };
 }
 
 function ShellLayout({ children }: { children: ReactNode }) {
@@ -59,8 +65,13 @@ function ShellLayout({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const meta = pageMeta[pathname] ?? defaultPageMeta;
   const PageIcon = meta.icon;
-  const clock = useSimulatedClock(city.timeLabel);
+  const clock = useClock();
   const demo = useDemo();
+  const scenario = useScenario();
+  const live = useLive(scenario.rainMode, scenario.installed);
+  const snapshot = live.data;
+  const notifications = snapshot?.notifications ?? [];
+  const critical = snapshot?.pipeline.criticalRisks ?? 0;
 
   return (
     <div className={cn("app-shell", collapsed && "is-collapsed")}>
@@ -94,11 +105,11 @@ function ShellLayout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="sidebar-foot">
-          <NavLink
-            {...settingsNavItem}
-            active={pathname === settingsNavItem.to}
-            collapsed={collapsed}
-          />
+          <div className="sidebar-source">
+            <span>Mapa: OpenStreetMap</span>
+            <span>Clima: Open-Meteo</span>
+            <span>Sensores: simulados</span>
+          </div>
           <button
             type="button"
             className="sidebar-collapse"
@@ -131,17 +142,48 @@ function ShellLayout({ children }: { children: ReactNode }) {
           </div>
 
           <div className="topbar-meta">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="system-chip">
-                  <i />
-                  {city.systemStatus}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                Telemetria, modelos e integrações respondendo dentro do esperado
-              </TooltipContent>
-            </Tooltip>
+            {scenario.simulated ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="system-chip is-simulated"
+                    onClick={scenario.reset}
+                  >
+                    <FlaskConical />
+                    Simulação ativa
+                    <RotateCcw />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {[
+                    scenario.rainMode === "extreme" ? "tempestade extrema simulada" : null,
+                    scenario.installed > 0
+                      ? `${scenario.installed} sensor(es) novo(s) simulado(s)`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                  . Clique para voltar à situação real.
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className={cn("system-chip", critical > 0 && "has-alert")}>
+                    <i />
+                    {critical > 0
+                      ? `${critical} alerta${critical > 1 ? "s" : ""} crítico${critical > 1 ? "s" : ""}`
+                      : "Operação normal"}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {snapshot
+                    ? `${snapshot.pipeline.online} de ${snapshot.pipeline.sensors} sensores comunicando · ${snapshot.pipeline.risks} riscos monitorados`
+                    : "Conectando ao motor de simulação…"}
+                </TooltipContent>
+              </Tooltip>
+            )}
 
             <Button
               variant="outline"
@@ -156,48 +198,72 @@ function ShellLayout({ children }: { children: ReactNode }) {
             <div className="topbar-location">
               <MapPin />
               <span>
-                <strong>
-                  {city.name} — {city.state}
-                </strong>
-                <small>
-                  {city.weekdayLabel}, {city.dateLabel} · {clock}
-                </small>
+                <strong>Ribeirão Preto — SP</strong>
+                <small>{clock ? `${clock.date} · ${clock.time}` : "—"}</small>
               </span>
             </div>
+
+            {snapshot && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="topbar-weather">
+                    <CloudSun />
+                    <span>
+                      <strong>
+                        {snapshot.weather.temperature.toLocaleString("pt-BR", {
+                          maximumFractionDigits: 0,
+                        })}
+                        °C
+                      </strong>
+                      <small>{snapshot.weather.description}</small>
+                    </span>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {snapshot.weather.source === "open-meteo"
+                    ? `Condição real agora em Ribeirão Preto (Open-Meteo) · umidade ${snapshot.weather.humidity}%`
+                    : "Previsão indisponível no momento: usando a climatologia da cidade"}
+                </TooltipContent>
+              </Tooltip>
+            )}
 
             <Popover>
               <PopoverTrigger asChild>
                 <button type="button" className="topbar-bell" aria-label="Notificações">
                   <Bell />
-                  <b>{NOTIFICATIONS.length}</b>
+                  {notifications.length > 0 && <b>{notifications.length}</b>}
                 </button>
               </PopoverTrigger>
               <PopoverContent align="end" className="notification-panel">
                 <header>
                   <strong>Notificações</strong>
-                  <span>{NOTIFICATIONS.length} novas</span>
+                  <span>{notifications.length} relevantes</span>
                 </header>
-                <ul>
-                  {NOTIFICATIONS.map((item) => (
-                    <li key={item.id} className={`level-${item.level}`}>
-                      <TriangleAlert />
-                      <div>
-                        <strong>{item.title}</strong>
-                        <small>{item.detail}</small>
-                        <i>{item.age}</i>
-                      </div>
-                      <StatusBadge level={item.level} subtle />
-                    </li>
-                  ))}
-                </ul>
+                {notifications.length === 0 ? (
+                  <p className="empty-hint">Nenhum alerta alto ou crítico agora.</p>
+                ) : (
+                  <ul>
+                    {notifications.map((item) => (
+                      <li key={item.id} className={`level-${item.level}`}>
+                        <TriangleAlert />
+                        <div>
+                          <strong>{item.title}</strong>
+                          <small>{item.detail}</small>
+                          <i>{item.time}</i>
+                        </div>
+                        <StatusBadge level={item.level} subtle />
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </PopoverContent>
             </Popover>
 
             <div className="topbar-user">
-              <span className="user-avatar">{city.operator.initials}</span>
+              <span className="user-avatar">{OPERATOR.initials}</span>
               <span className="user-text">
-                <strong>{city.operator.name}</strong>
-                <small>{city.operator.role}</small>
+                <strong>{OPERATOR.name}</strong>
+                <small>{OPERATOR.role}</small>
               </span>
             </div>
           </div>
@@ -213,28 +279,26 @@ function NavLink({
   label,
   to,
   icon: Icon,
+  hint,
   active,
   collapsed,
 }: {
   label: string;
   to: string;
   icon: typeof Droplets;
+  hint: string;
   active: boolean;
   collapsed: boolean;
 }) {
-  const link = (
-    <Link to={to} className={cn("nav-item", active && "is-active")}>
-      <Icon />
-      <span>{label}</span>
-    </Link>
-  );
-
-  if (!collapsed) return link;
-
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{link}</TooltipTrigger>
-      <TooltipContent side="right">{label}</TooltipContent>
+      <TooltipTrigger asChild>
+        <Link to={to} className={cn("nav-item", active && "is-active")}>
+          <Icon />
+          <span>{label}</span>
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent side="right">{collapsed ? `${label} — ${hint}` : hint}</TooltipContent>
     </Tooltip>
   );
 }

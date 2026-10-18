@@ -1,228 +1,257 @@
+import { useMemo } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, BrainCircuit, Droplets, Gauge, TriangleAlert } from "lucide-react";
-import { CityMap } from "@/components/aquagraph/CityMap";
-import { ActionList, EventList } from "@/components/aquagraph/lists";
+import { ArrowRight, BrainCircuit, History, Map as MapIcon, Radar } from "lucide-react";
+import { OpsMap, type MapMarkerSpec, type SectorStyle } from "@/components/map/OpsMap";
+import { ActionList } from "@/components/aquagraph/lists";
+import { useScenario } from "@/components/aquagraph/ScenarioContext";
+import { ChallengeCard, StoryPipeline, Timeline } from "@/components/aquagraph/story";
 import {
-  KpiCard,
-  KpiStrip,
   LiveTag,
+  LoadingBlock,
   Panel,
   PanelFooter,
   PanelHeader,
+  StoryBanner,
 } from "@/components/aquagraph/primitives";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { city, sectorProfileById, watchedSectors } from "@/data/city";
-import { sectorById } from "@/data/cityGeometry";
-import { sensors } from "@/data/sensors";
-import { networkSummary } from "@/data/waterNetwork";
-import {
-  decisionRows,
-  kpiSparklines,
-  overviewActions,
-  overviewKpis,
-  priorityEvents,
-} from "@/data/recommendations";
-import { severityLabel } from "@/lib/severity";
+import { useLive, useMapBase } from "@/lib/api";
 import { pageHead } from "@/lib/route-head";
-import type { MapMarker } from "@/types";
+import { formatAge, num, readingsById, signed } from "@/lib/format";
+import type { LayerOption } from "@/components/map/OpsMap";
 
 export const Route = createFileRoute("/")({
   head: pageHead(
     "Centro Operacional",
-    "Visão integrada da situação hídrica de Ribeirão das Águas: perdas, reservatórios, risco hidrológico e ações prioritárias.",
+    "Ribeirão Preto em tempo quase real: perdas, abastecimento, risco hidrológico e as decisões do dia.",
   ),
   component: OverviewPage,
 });
 
-/** Focos operacionais destacados no mapa, um por setor monitorado. */
-const overviewMarkers: MapMarker[] = watchedSectors.flatMap((id) => {
-  const profile = sectorProfileById.get(id);
-  const geometry = sectorById.get(id);
-  if (!profile || !geometry) return [];
-  return [
-    {
-      id,
-      label: `Setor ${id}`,
-      detail: `${profile.leakProbability}% · ${severityLabel[profile.level]}`,
-      x: geometry.centroid.x,
-      y: geometry.centroid.y,
-      level: profile.level,
-      kind: "alert" as const,
-    },
-  ];
-});
-
-const PIPELINE = [
-  { stage: "Dados", value: `${sensors.length} sensores`, hint: "4 fontes integradas" },
-  { stage: "Inteligência", value: "4 modelos", hint: "perdas, seca, chuva, sensing" },
-  { stage: "Previsão", value: "72 h", hint: "horizonte operacional" },
-  {
-    stage: "Recomendação",
-    value: `${decisionRows.filter((row) => row.status === "Pendente").length} abertas`,
-    hint: `${decisionRows.length} no total`,
-  },
-  {
-    stage: "Ação",
-    value: `${decisionRows.filter((row) => row.status === "Em execução").length} em execução`,
-    hint: "equipes de campo",
-  },
+const LAYERS: LayerOption[] = [
+  { id: "sectors", label: "Setores de abastecimento", on: true },
+  { id: "network", label: "Adutoras e rede principal", on: true },
+  { id: "secondary", label: "Rede secundária (zoom)", on: false },
+  { id: "leak", label: "Probabilidade de vazamento", on: true },
+  { id: "streams", label: "Córregos e galerias", on: true },
+  { id: "reservoirs", label: "Reservatórios e poços", on: true },
+  { id: "sensors", label: "Sensores IoT", on: true },
+  { id: "facilities", label: "Infraestrutura crítica", on: false },
 ];
 
 function OverviewPage() {
   const navigate = useNavigate();
+  const scenario = useScenario();
+  const live = useLive(scenario.rainMode, scenario.installed);
+  const base = useMapBase();
+  const snapshot = live.data;
+
+  const readings = useMemo(() => readingsById(snapshot?.sensors), [snapshot]);
+
+  const sectorStyles = useMemo(() => {
+    const styles: Record<string, SectorStyle> = {};
+    for (const sector of snapshot?.sectors ?? []) {
+      styles[sector.id] = {
+        level: sector.level,
+        detail: `Prob. de vazamento ${sector.leakProbability}% · perda física ${num(sector.lossRate)}% · pressão ${signed(sector.pressureDeviation)}%`,
+        ...(sector.leakProbability >= 35 ? { caption: `${sector.leakProbability}%` } : {}),
+      };
+    }
+    return styles;
+  }, [snapshot]);
+
+  const heat = useMemo(
+    () =>
+      (snapshot?.sectors ?? [])
+        .filter((sector) => sector.leakProbability >= 35)
+        .flatMap((sector) => {
+          const geo = base.data?.sectors.find((s) => s.id === sector.id);
+          return geo ? [{ lngLat: geo.centroid, weight: sector.leakProbability / 100 }] : [];
+        }),
+    [snapshot, base.data],
+  );
+
+  const markers = useMemo<MapMarkerSpec[]>(
+    () =>
+      (snapshot?.headlines ?? [])
+        .filter((h) => h.lngLat && (h.level !== "normal" || h.module === "sensing"))
+        .map((h) => ({
+          id: `headline-${h.module}`,
+          lngLat: h.lngLat as [number, number],
+          level: h.module === "sensing" ? "attention" : h.level,
+          kind: h.module === "sensing" ? ("recommendation" as const) : ("alert" as const),
+          label:
+            h.module === "sensing"
+              ? (h.detail.match(/S-\d+/)?.[0] ?? "Sensor")
+              : (h.title.split(" · ")[0] ?? h.title),
+          detail: `${h.metric} ${h.metricLabel}`,
+          pulse: h.level === "critical",
+          onClick: () =>
+            void navigate({
+              to:
+                h.module === "perdas"
+                  ? "/perdas"
+                  : h.module === "seca"
+                    ? "/seca"
+                    : h.module === "enchentes"
+                      ? "/enchentes"
+                      : "/active-sensing",
+            }),
+          tooltip: (
+            <>
+              <header>
+                <strong>{h.title}</strong>
+                <span>
+                  {h.metric} {h.metricLabel}
+                </span>
+              </header>
+              <p>{h.detail}</p>
+              <footer>
+                <span className="map-tip-origin origin-modelo">Cálculo do modelo</span>
+                <small>clique para abrir o módulo</small>
+              </footer>
+            </>
+          ),
+        })),
+    [snapshot, navigate],
+  );
+
+  const critical =
+    snapshot?.headlines.filter((h) => h.level === "critical" || h.level === "high") ?? [];
+  const storyTitle = snapshot
+    ? critical.length > 0
+      ? `${critical.length} ${critical.length === 1 ? "situação exige" : "situações exigem"} atenção agora`
+      : "Cidade operando dentro do esperado"
+    : "Conectando ao motor de simulação…";
 
   return (
     <div className="page">
       <div className="page-toolbar">
         <div className="toolbar-left">
-          <LiveTag>{city.dataFreshness}</LiveTag>
+          <LiveTag>
+            {snapshot ? `Atualizado ${formatAge(snapshot.generatedAt)}` : "Conectando…"}
+          </LiveTag>
           <span className="toolbar-divider" />
           <span className="toolbar-note">
-            {networkSummary.extension} de rede · {networkSummary.connections} ·{" "}
-            {networkSummary.sectors} setores
+            {snapshot
+              ? `${snapshot.city.networkKm.toLocaleString("pt-BR")} km de rede · ${snapshot.city.connections.toLocaleString("pt-BR")} ligações · ${snapshot.city.sectors} setores · ${(snapshot.city.population / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 0 })} mil habitantes na área monitorada`
+              : "Carregando a cidade…"}
           </span>
         </div>
         <div className="toolbar-right">
-          <Select defaultValue="24h">
-            <SelectTrigger className="toolbar-select">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="24h">Últimas 24 horas</SelectItem>
-              <SelectItem value="7d">Últimos 7 dias</SelectItem>
-              <SelectItem value="30d">Últimos 30 dias</SelectItem>
-            </SelectContent>
-          </Select>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/decisoes">
+              <BrainCircuit />
+              Centro de decisões
+            </Link>
+          </Button>
         </div>
       </div>
 
-      <KpiStrip>
-        <KpiCard
-          icon={Droplets}
-          label="Perda estimada"
-          value={`${overviewKpis.lossRate.toLocaleString("pt-BR")}%`}
-          delta={`▼ ${Math.abs(overviewKpis.lossRateTrend).toLocaleString("pt-BR")} p.p.`}
-          deltaTone="positive"
-          hint="vs. mês anterior"
-          tone="cyan"
-          spark={kpiSparklines.loss}
-        />
-        <KpiCard
-          icon={Gauge}
-          label="Reservatórios"
-          value={`${overviewKpis.reservoirLevel}%`}
-          delta={`▼ ${Math.abs(overviewKpis.reservoirTrend)} p.p.`}
-          deltaTone="negative"
-          hint="nível médio ponderado"
-          tone="warning"
-          spark={kpiSparklines.reservoir}
-          progress={overviewKpis.reservoirLevel}
-        />
-        <KpiCard
-          icon={TriangleAlert}
-          label="Áreas críticas"
-          value={String(overviewKpis.criticalAreas)}
-          delta={`▲ ${overviewKpis.criticalAreasTrend}`}
-          deltaTone="negative"
-          hint="setores em atenção ou pior"
-          tone="critical"
-          spark={kpiSparklines.criticalAreas}
-          sparkKind="bars"
-        />
-        <KpiCard
-          icon={BrainCircuit}
-          label="Confiança do modelo"
-          value={`${overviewKpis.modelConfidence}%`}
-          delta="Alta confiabilidade"
-          deltaTone="positive"
-          hint="validação contínua com telemetria"
-          tone="success"
-          spark={kpiSparklines.confidence}
-          progress={overviewKpis.modelConfidence}
-        />
-      </KpiStrip>
+      <StoryBanner
+        icon={Radar}
+        level={
+          critical.some((h) => h.level === "critical")
+            ? "critical"
+            : critical.length
+              ? "high"
+              : "normal"
+        }
+        title={storyTitle}
+      >
+        {snapshot
+          ? snapshot.headlines
+              .filter((h) => h.level !== "normal")
+              .map((h) => h.detail)
+              .slice(0, 2)
+              .join(" ") || "Nenhum dos quatro modelos aponta risco relevante neste momento."
+          : "Lendo sensores, clima e modelos."}
+      </StoryBanner>
+
+      <StoryPipeline snapshot={snapshot} />
 
       <div className="layout-main">
         <Panel flush className="map-panel">
           <PanelHeader
             title="Mapa operacional"
-            hint="situação em tempo quase real"
-            action={
-              <>
-                <LiveTag>ao vivo</LiveTag>
-                <Link to="/decisoes" className="panel-link">
-                  Centro de decisões <ArrowRight />
-                </Link>
-              </>
-            }
-          />
-          <CityMap
-            variant="overview"
-            markers={overviewMarkers}
-            sectorLabels="codes"
-            onSelectSector={(sectorId) => {
-              if (sectorProfileById.has(sectorId)) void navigate({ to: "/perdas" });
+            icon={MapIcon}
+            hint="Ribeirão Preto · OpenStreetMap"
+            info={{
+              term: "Como ler o mapa",
+              definition:
+                "Vias, córregos, bairros, reservatórios e hospitais são reais (OpenStreetMap). Setores, rede sob as vias e sensores são o modelo do AquaGraph. Passe o mouse sobre qualquer elemento para saber o que é.",
             }}
+            action={<LiveTag>{scenario.simulated ? "cenário simulado" : "ao vivo"}</LiveTag>}
           />
+          {base.data ? (
+            <OpsMap
+              base={base.data}
+              layers={LAYERS}
+              sectorStyles={sectorStyles}
+              readings={readings}
+              heat={heat}
+              markers={markers}
+              onSelectSector={() => void navigate({ to: "/perdas" })}
+              legend={{
+                title: "Situação por setor",
+                swatches: [
+                  { level: "normal", label: "Normal" },
+                  { level: "attention", label: "Atenção" },
+                  { level: "high", label: "Alto" },
+                  { level: "critical", label: "Crítico" },
+                ],
+              }}
+            />
+          ) : (
+            <LoadingBlock height={520} label="Carregando mapa da cidade…" />
+          )}
         </Panel>
 
         <aside className="side-stack">
           <Panel flush>
-            <PanelHeader
-              title="Eventos prioritários"
-              icon={TriangleAlert}
-              action={
-                <Link to="/decisoes" className="panel-link">
-                  Ver todos <ArrowRight />
-                </Link>
-              }
-            />
-            <EventList items={priorityEvents} />
+            <PanelHeader title="Situação por desafio" hint="clique para analisar" />
+            <div className="challenge-list">
+              {snapshot ? (
+                snapshot.headlines.map((h) => <ChallengeCard key={h.module} headline={h} />)
+              ) : (
+                <LoadingBlock height={300} />
+              )}
+            </div>
           </Panel>
+        </aside>
+      </div>
 
-          <Panel flush>
-            <PanelHeader
-              title="Ações recomendadas"
-              icon={BrainCircuit}
-              action={<span className="panel-hint">ordenadas por retorno</span>}
-            />
+      <div className="grid-2">
+        <Panel flush>
+          <PanelHeader title="Próximas decisões" icon={BrainCircuit} hint="impacto × confiança" />
+          {snapshot ? (
             <ActionList
-              items={overviewActions.map((action) => ({
+              items={snapshot.topActions.map((action) => ({
                 id: action.id,
                 action: action.action,
                 rationale: action.rationale,
                 priority: action.priority,
                 level: action.level,
                 time: action.horizon,
+                impact: action.impact,
               }))}
+              onSelect={() => void navigate({ to: "/decisoes" })}
             />
-            <PanelFooter>
-              <Button asChild variant="operational" className="w-full">
-                <Link to="/decisoes">Ver centro de decisões</Link>
-              </Button>
-            </PanelFooter>
-          </Panel>
-        </aside>
-      </div>
+          ) : (
+            <LoadingBlock />
+          )}
+          <PanelFooter>
+            <Button asChild variant="operational" className="w-full">
+              <Link to="/decisoes">
+                Ver todas no Centro de Decisões <ArrowRight />
+              </Link>
+            </Button>
+          </PanelFooter>
+        </Panel>
 
-      <div className="pipeline-strip">
-        {PIPELINE.map((item, index) => (
-          <div className="pipeline-step" key={item.stage}>
-            <span className="pipeline-index">{String(index + 1).padStart(2, "0")}</span>
-            <span className="pipeline-text">
-              <small>{item.stage}</small>
-              <strong>{item.value}</strong>
-              <i>{item.hint}</i>
-            </span>
-          </div>
-        ))}
+        <Panel flush>
+          <PanelHeader title="Linha do tempo de hoje" icon={History} hint="do dado à ação" />
+          {snapshot ? <Timeline events={snapshot.timeline} /> : <LoadingBlock />}
+        </Panel>
       </div>
     </div>
   );

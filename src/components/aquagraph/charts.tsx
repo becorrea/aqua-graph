@@ -16,6 +16,12 @@ export const AXIS = {
   axisLine: false,
 } as const;
 
+/** Eixo Y com números no padrão brasileiro (vírgula decimal, ponto de milhar). */
+export const AXIS_Y = {
+  ...AXIS,
+  tickFormatter: (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 1 }),
+} as const;
+
 export const GRID = {
   stroke: "oklch(0.8276 0.1013 230.32 / 0.09)",
   strokeDasharray: "3 4",
