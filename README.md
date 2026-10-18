@@ -1,5 +1,7 @@
 # AquaGraph Hub
 
+> **Documentação da versão atual:** [Guia do AquaGraph](docs/guia-aquagraph.md) (funcionalidades de cada aba e o que é cada dado) e [Registro de mudanças](docs/registro-de-mudancas.md) (tudo o que foi criado, alterado e removido). O texto abaixo é o briefing original do protótipo.
+
 Quero que você desenvolva um PROTÓTIPO WEB NAVEGÁVEL DE ALTA FIDELIDADE chamado AQUAGRAPH.
 
 IMPORTANTE:
